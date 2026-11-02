@@ -1,0 +1,1531 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="light dark" />
+  <meta name="theme-color" content="#fff7fa" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#171215" media="(prefers-color-scheme: dark)" />
+  <link rel="icon" href="data:," />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;family=DM+Serif+Display&amp;display=swap" rel="stylesheet" />
+  <title>Shop Recipe Lookup</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #fff7fa;
+      --surface: #ffffff;
+      --surface-soft: #fff0f5;
+      --surface-green: #f2f8f0;
+      --text: #21171c;
+      --muted: #65555d;
+      --line: #eadde2;
+      --pink: #d72f72;
+      --pink-deep: #a91f55;
+      --pink-ink: #78123c;
+      --matcha: #4e713f;
+      --matcha-soft: #dfead9;
+      --korea: #a44758;
+      --korea-soft: #f5dde3;
+      --shadow: 0 12px 32px rgba(93, 37, 61, .08);
+      --focus: #0b6cb8;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #171215;
+        --surface: #211a1e;
+        --surface-soft: #2b1c22;
+        --surface-green: #1d271d;
+        --text: #fff5f8;
+        --muted: #d3c2c9;
+        --line: #43363c;
+        --pink: #ff6da7;
+        --pink-deep: #ff8ab8;
+        --pink-ink: #ffc3da;
+        --matcha: #a8cc94;
+        --matcha-soft: #273824;
+        --korea: #f29aaa;
+        --korea-soft: #40262d;
+        --shadow: 0 14px 34px rgba(0, 0, 0, .28);
+        --focus: #71b9f0;
+      }
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      min-width: 320px;
+      background:
+        linear-gradient(180deg, var(--surface-soft) 0, var(--bg) 260px);
+      color: var(--text);
+      font-family: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+      font-size: 16px;
+      line-height: 1.45;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button, input { font: inherit; }
+
+    .page {
+      width: min(1180px, 100%);
+      margin: 0 auto;
+      padding: 18px 18px calc(48px + env(safe-area-inset-bottom));
+    }
+
+    .lookup {
+      position: relative;
+      margin-bottom: 14px;
+    }
+
+    .search-label {
+      display: block;
+      margin: 0 0 8px;
+      color: var(--pink-ink);
+      font-size: .82rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .search-wrap { position: relative; }
+
+    .search-icon {
+      position: absolute;
+      left: 18px;
+      top: 50%;
+      width: 22px;
+      height: 22px;
+      color: var(--pink);
+      transform: translateY(-50%);
+      pointer-events: none;
+    }
+
+    #recipe-search {
+      width: 100%;
+      min-height: 62px;
+      padding: 0 58px 0 54px;
+      border: 2px solid var(--pink);
+      border-radius: 18px;
+      outline: none;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+      color: var(--text);
+      font-size: clamp(1.08rem, 3vw, 1.3rem);
+      font-weight: 600;
+      caret-color: var(--pink);
+    }
+
+    #recipe-search::placeholder { color: var(--muted); font-weight: 500; opacity: .88; }
+    #recipe-search::-webkit-search-cancel-button { display: none; -webkit-appearance: none; }
+    #recipe-search:focus { border-color: var(--focus); box-shadow: 0 0 0 4px color-mix(in srgb, var(--focus) 18%, transparent), var(--shadow); }
+
+    .clear-button {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      display: grid;
+      width: 42px;
+      height: 42px;
+      place-items: center;
+      border: 0;
+      border-radius: 50%;
+      background: transparent;
+      color: var(--muted);
+      transform: translateY(-50%);
+      cursor: pointer;
+    }
+
+    .clear-button:hover { background: var(--surface-soft); color: var(--text); }
+    .clear-button:focus-visible, .chip:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+    .clear-button[hidden] { display: none; }
+
+    .house-rules {
+      display: grid;
+      gap: 10px;
+      margin: 0 0 14px;
+      padding: 15px 16px 16px;
+      border: 1px solid color-mix(in srgb, var(--pink) 32%, var(--line));
+      border-radius: 12px;
+      background: var(--surface);
+    }
+
+    .house-rules h2 {
+      margin: 0;
+      color: var(--pink-ink);
+      font-size: .78rem;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .rule {
+      display: grid;
+      grid-template-columns: 28px 1fr;
+      gap: 8px;
+      align-items: start;
+    }
+
+    .rule-mark {
+      display: grid;
+      width: 24px;
+      height: 24px;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--pink);
+      color: #fff;
+      font-size: .8rem;
+      font-weight: 700;
+    }
+
+    .rule p { margin: 1px 0 0; font-size: .98rem; }
+    .rule strong { color: var(--pink-ink); }
+
+    .toolbar {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      justify-content: space-between;
+      margin: 0 0 18px;
+    }
+
+    .chips { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    .chip {
+      min-height: 42px;
+      padding: 0 16px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--surface);
+      color: var(--text);
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .chip[aria-pressed="true"] {
+      border-color: var(--pink);
+      background: var(--pink);
+      color: #fff;
+    }
+
+    .result-count {
+      margin: 0;
+      color: var(--muted);
+      font-size: .9rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .recipe-grid {
+      display: grid;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .recipe-card {
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 18px 18px 10px 10px;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+
+    .recipe-card[hidden] { display: none; }
+
+    .recipe-head {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: start;
+      padding: 20px 20px 17px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .recipe-card.matcha .recipe-head { background: var(--surface-green); }
+    .recipe-card.korea .recipe-head { background: var(--surface-soft); }
+
+    .category-label {
+      display: inline-block;
+      margin-bottom: 4px;
+      color: var(--pink-ink);
+      font-size: .75rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .matcha .category-label { color: var(--matcha); }
+    .korea .category-label { color: var(--korea); }
+
+    .recipe-title {
+      margin: 0;
+      font-family: "DM Serif Display", Georgia, serif;
+      font-size: clamp(1.55rem, 5vw, 2.05rem);
+      font-weight: 400;
+      line-height: 1.08;
+      letter-spacing: -.01em;
+    }
+
+    .meta {
+      display: grid;
+      gap: 6px;
+      justify-items: end;
+    }
+
+    .price {
+      margin: 2px 0 0;
+      padding: 5px 9px;
+      border-radius: 7px;
+      background: var(--matcha-soft);
+      color: var(--matcha);
+      font-size: .92rem;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .korea .price { background: var(--korea-soft); color: var(--korea); }
+
+    .sugar {
+      margin: 0;
+      padding: 4px 8px;
+      border-radius: 7px;
+      background: var(--surface-soft);
+      color: var(--pink-ink);
+      font-size: .8rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .steps {
+      margin: 0;
+      padding: 18px 20px 18px 54px;
+    }
+
+    .steps li {
+      position: relative;
+      margin: 0 0 14px;
+      padding-left: 3px;
+      font-size: 1.02rem;
+      line-height: 1.48;
+    }
+
+    .steps li:last-child { margin-bottom: 0; }
+
+    .steps li::marker {
+      color: var(--pink);
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .tip {
+      margin: 0 20px 20px;
+      padding: 13px 14px;
+      border-radius: 9px;
+      background: var(--surface-soft);
+      color: var(--text);
+      font-size: .93rem;
+    }
+
+    .tip strong { color: var(--pink-ink); }
+
+    .empty {
+      padding: 44px 20px;
+      border: 1px dashed var(--line);
+      border-radius: 14px;
+      background: var(--surface);
+      text-align: center;
+    }
+
+    .empty h2 { margin: 0 0 5px; font-family: "DM Serif Display", Georgia, serif; font-weight: 400; }
+    .empty p { margin: 0; color: var(--muted); }
+    .empty[hidden] { display: none; }
+
+    .footer-note {
+      margin: 24px 0 0;
+      color: var(--muted);
+      font-size: .86rem;
+      text-align: center;
+    }
+
+    mark {
+      padding: 0 .08em;
+      border-radius: .18em;
+      background: #ffd2e1;
+      color: #54102c;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      mark { background: #713049; color: #fff5f8; }
+    }
+
+    @media (min-width: 720px) {
+      .page { padding: 30px 28px 64px; }
+      .house-rules { grid-template-columns: 1fr 1fr; align-items: start; gap: 14px 22px; padding: 18px 20px; }
+      .house-rules h2 { grid-column: 1 / -1; }
+      .recipe-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (min-width: 1040px) {
+      .page { padding-top: 36px; }
+      .lookup { max-width: 760px; }
+    }
+
+    @media (max-width: 520px) {
+      .toolbar { align-items: flex-start; flex-direction: column; gap: 10px; }
+      .result-count { padding-left: 2px; }
+      .recipe-head { padding: 18px 16px 15px; }
+      .steps { padding: 17px 17px 17px 47px; }
+      .steps li { font-size: 1rem; }
+      .tip { margin: 0 16px 17px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="lookup" aria-label="Recipe lookup">
+      <label class="search-label" for="recipe-search">Find a recipe</label>
+      <div class="search-wrap">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <circle cx="10.8" cy="10.8" r="6.3" stroke="currentColor" stroke-width="2.2"></circle>
+          <path d="m15.6 15.6 4.2 4.2" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"></path>
+        </svg>
+        <input id="recipe-search" type="search" inputmode="search" autocomplete="off" spellcheck="false" placeholder="Type a drink name or ingredient…" aria-describedby="result-count" />
+        <button class="clear-button" type="button" aria-label="Clear search" hidden>
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" aria-hidden="true">
+            <path d="m7 7 10 10M17 7 7 17" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
+          </svg>
+        </button>
+      </div>
+    </section>
+
+    <section class="house-rules" aria-labelledby="rules-title">
+      <h2 id="rules-title">House rules — from the shop sheets</h2>
+      <div class="rule">
+        <span class="rule-mark" aria-hidden="true">1</span>
+        <p><strong>Strawberry drinks:</strong> smash 1 medium strawberry (or ½ of a big one) in the bottom of the cup for texture</p>
+      </div>
+      <div class="rule">
+        <span class="rule-mark" aria-hidden="true">2</span>
+        <p><strong>Fruit-flavored milk teas:</strong> now 75% sugar (handwritten correction on the sheets — was 100%)</p>
+      </div>
+      <div class="rule">
+        <span class="rule-mark" aria-hidden="true">3</span>
+        <p><strong>Milkshake base:</strong> milkshake cup, whip cream by default — 1 cup ice cream + big cup full of ice. Sugar: base sheet says 100%, the Korea sheet's handwritten note says 75%</p>
+      </div>
+      <div class="rule">
+        <span class="rule-mark" aria-hidden="true">4</span>
+        <p><strong>Cups:</strong> Matcha Specialty &amp; Taste of Korea drinks use milkshake cups (except Matcha Love, Ube Mood, Korean Coffee); lattes with foam go in a small cup with lids</p>
+      </div>
+    </section>
+
+    <div class="toolbar">
+      <div class="chips" role="group" aria-label="Filter recipes by category">
+        <button class="chip" type="button" data-category="all" aria-pressed="true">All</button>
+        <button class="chip" type="button" data-category="milktea" aria-pressed="false">Milk Teas</button>
+        <button class="chip" type="button" data-category="blends" aria-pressed="false">Blends</button>
+        <button class="chip" type="button" data-category="crushies" aria-pressed="false">Specialties &amp; Crushies</button>
+        <button class="chip" type="button" data-category="coconut" aria-pressed="false">Coconut</button>
+        <button class="chip" type="button" data-category="lattes" aria-pressed="false">Lattes</button>
+        <button class="chip" type="button" data-category="milkshakes" aria-pressed="false">Milkshakes</button>
+        <button class="chip" type="button" data-category="matcha" aria-pressed="false">Matcha</button>
+        <button class="chip" type="button" data-category="korea" aria-pressed="false">Taste of Korea</button>
+      </div>
+      <p class="result-count" id="result-count" aria-live="polite">87 recipes</p>
+    </div>
+
+    <section class="recipe-grid" aria-label="Recipes">
+      <article class="recipe-card" data-category="milktea" data-name="taro milk tea">
+        <header class="recipe-head">
+          <div><span class="category-label">Milk Teas</span><h2 class="recipe-title">Taro Milk Tea</h2></div>
+          <div class="meta"><p class="sugar">100% sugar</p></div>
+        </header>
+        <ol class="steps">
+          <li>100 ml hot water + 1½ spoons taro powder, blend</li>
+          <li>Add 100 ml milk of choice</li>
+        </ol>
+      </article>
+
+      <article class="recipe-card" data-category="milktea" data-name="honey dew milk tea honeydew">
+        <header class="recipe-head">
+          <div><span class="category-label">Milk Teas</span><h2 class="recipe-title">Honey Dew Milk Tea</h2></div>
+          <div class="meta"><p class="sugar">100% sugar</p></div>
+        </header>
+        <ol class="steps">
+          <li>100 ml hot water + 1½ spoons honeydew powder, blend</li>
+          <li>Add 100 ml milk of choice</li>
+        </ol>
+      </article>
+
+      <article class="recipe-card" data-category="milktea" data-name="black tea milk tea">
+        <header class="recipe-head">
+          <div><span class="category-label">Milk Teas</span><h2 class="recipe-title">Black Tea</h2></div>
+          <div class="meta"><p class="sugar">100% sugar</p></div>
+        </header>
+        <ol class="steps">
+          <li>250 ml black tea</li>
+          <li>Add 100 ml milk</li>
+        </ol>
+      </article>
+
+      <article class="recipe-card" data-category="milktea" data-name="brown sugar tea milk tea">
+        <header class="recipe-head">
+          <div><span class="category-label">Milk Teas</span><h2 class="recipe-title">Brown Sugar Tea</h2></div>
+          <div class="meta"><p class="sugar">100% sugar</p></div>
+        </header>
+        <ol class="steps">
+          <li>Brown sugar around the cup</li>
+          <li>250 ml black tea</li>
+          <li>Add 100 ml milk</li>
+        </ol>
+      </article>
+
+      <article class="recipe-card" data-category="milktea" data-name="mango milk tea">
+        <header class="recipe-head">
+          <div><span class="category-label">Milk Teas</span><h2 class="recipe-title">Mango Milk Tea</h2></div>
+          <div class="meta"><p class="sugar">75% sugar</p></div>
+        </header>
+        <ol class="steps">
+          <li>250 ml black tea + 1 pump mango syrup</li>
+          <li>Add 100 ml milk</li>
+        </ol>
+        <p class="tip"><strong>Sheet note:</strong> Fruit-flavored milk teas are now 75% sugar (was 100%).</p>
+      </article>
+
+      <article class="recipe-card" data-category="milktea" data-name="strawberry milk tea sb">
+        <header class="recipe-head">
+          <div><span class="category-label">Milk Teas</span><h2 class="recipe-title">Strawberry Milk Tea</h2></div>
+          <div class="meta"><p class="sugar">75% sugar</p></div>
+        </header>
+        <ol class="steps">
+          <li>250 ml black tea + 1 pump SB syrup</li>
+          <li>Add 100 ml milk</li>
+        </ol>
+        <p class="tip"><strong>Sheet note:</strong> Fruit-flavored milk teas are now 75% sugar (was 100%). Smash 1 strawberry in the cup, per the strawberry rule.</p>
+      </article>
+
+      <article class="recipe-card" data-category="milktea" data-name="thai tea milk tea">
+        <header class="recipe-head">
+          <div><span class="category-label">Milk Teas</span><h2 class="recipe-title">Thai Tea</h2></div>
+          <div class="meta"><p class="sugar">100% sugar</p></div>
+        </header>
+        <ol class="steps">
+          <li>100 ml Thai tea</li>
+          <li>Add 250 ml milk</li>
+        </ol>
+      </article>
+
+      <article class="recipe-card" data-category="milktea" data-name="matcha milk tea">
+        <header class="recipe-head">
+          <div><span class="category-label">Milk Teas</span><h2 class="recipe-title">Matcha Milk Tea</h2></div>
+          <div class="meta"><p class="sugar">100% sugar</p></div>
+        </header>
+        <ol class="steps">
+          <li>100 ml hot water + 3 spoons matcha powder, blend</li>
+          <li>Add 250 ml milk</li>
+        </ol>
+      </article>
+
+      <article class="recipe-card" data-category="milktea" data-name="ktea milk tea">
+        <header class="recipe-head">
+          <div><span class="category-label">Milk Teas</span><h2 class="recipe-title">KTea</h2></div>
+          <div class="meta"><p class="sugar">100% sugar</p></div>
+        </header>
+        <ol class="steps">
+          <li>200 ml hot water + 3 spoons KTea powder</li>
+          <li>Add 150 ml milk and sugar, blend very well</li>
+        </ol>
+      </article>
+
+      <article class="recipe-card" data-category="milktea" data-name="chai tea milk tea">
+        <header class="recipe-head">
+          <div><span class="category-label">Milk Teas</span><h2 class="recipe-title">Chai Tea</h2></div>
+          <div class="meta"><p class="sugar">100% sugar</p></div>
+        </header>
+        <ol class="steps">
+          <li>250 ml chai tea</li>
+          <li>Add 100 ml milk</li>
+        </ol>
+      </article>
+
+      <article class="recipe-card" data-category="milktea" data-name="mocha milk tea coffee chocolate">
+        <header class="recipe-head">
+          <div><span class="category-label">Milk Teas</span><h2 class="recipe-title">Mocha Milk Tea</h2></div>
+          <div class="meta"><p class="sugar">100% sugar</p></div>
+        </header>
+        <ol class="steps">
+          <li>100 ml hot water + 1½ spoons mocha powder + ⅓ spoon instant coffee powder</li>
+          <li>Chocolate syrup around the cup</li>
+          <li>Add 250 ml milk</li>
+        </ol>
+      </article>
+
+      <article class="recipe-card" data-category="milktea" data-name="classic milk tea boba">
+        <header class="recipe-head">
+          <div><span class="category-label">Milk Teas</span><h2 class="recipe-title">Classic</h2></div>
+          <div class="meta"><p class="sugar">100% sugar</p></div>
+        </header>
+        <ol class="steps">
+          <li>350 ml classic tea, boba included</li>
+          <li>No milk</li>
+        </ol>
+      </article>
+
+      <article class="recipe-card" data-category="milktea" data-name="ube milk tea">
+        <header class="recipe-head">
+          <div><span class="category-label">Milk Teas</span><h2 class="recipe-title">Ube Milk Tea</h2></div>
+          <div class="meta"><p class="sugar">50% sugar</p></div>
+        </header>
+        <ol class="steps">
+          <li>16 oz cup (handwritten: small cup), fill with ice</li>
+          <li>In a measuring cup: 250 ml milk + 50% sugar + ube paste drizzle for 3 seconds (like ube ice cream), froth with the frother</li>
+          <li>Pour into the cup — should fill to about 1 inch from the rim</li>
+          <li>Foam: 50 ml heavy cream + 25% sugar + very tiny splash of milk, froth until it doubles in size and is creamy</li>
+          <li>Pour the foam on top and serve</li>
+        </ol>
+      </article>
+
+      <article class="recipe-card" data-category="blends" data-name="taro blend">
+        <header class="recipe-head">
+          <div><span class="category-label">Blends</span><h2 class="recipe-title">Taro Blend</h2></div>
+          <div class="meta"><p class="sugar">100% sugar</p></div>
+        </header>
+        <ol class="steps">
+          <li>½ taro powder + 1 taro blend powder</li>
+          <li>250 ml milk</li>
+          <li>Black ice, blend</li>
+        </ol>
+      </article>
+
+      <article class="recipe-card" data-category="blends" data-name="honey dew blend honeydew">
+        <header class="recipe-head">
+          <div><span class="category-label">Blends</span><h2 class="recipe-title">Honey Dew Blend</h2></div>
+          <div class="meta"><p class="sugar">100% sugar</p></div>
+        </header>
+        <ol class="steps">
+          <li>½ honeydew powder + 1 honeydew blend powder</li>
+          <li>250 ml milk</li>
+          <li>Black ice, blend</li>
+        </ol>
+      </article>
+
+      <article class="recipe-card" data-category="blends" data-name="thai tea blend">
+        <header class="recipe-head">
+          <div><span class="category-label">Blends</span><h2 class="recipe-title">Thai Tea Blend</h2></div>
+          <div class="meta"><p class="sugar">100% sugar</p></div>
+        </header>
+        <ol class="steps">
+          <li>100 ml Thai tea + 1 Thai blend powder</li>
+          <li>150 ml milk</li>
+          <li>Black ice, blend</li>
+        </ol>
+      </article>
+
+      <article class="recipe-card" data-category="blends" data-name="matcha blend">
+        <header class="recipe-head">
+          <div><span class="category-label">Blends</span><h2 class="recipe-title">Matcha Blend</h2></div>
+          <div class="meta"><p class="sugar">100% sugar</p></div>
+        </header>
+        <ol class="steps">
+          <li>3 spoons matcha powder + 1 matcha blend powder</li>
+          <li>250 ml milk</li>
+          <li>Black ice, blend</li>
+        </ol>
+      </article>
+
+      <article class="recipe-card" data-category="blends" data-name="chai tea blend">
+        <header class="recipe-head">
+          <div><span class="category-label">Blends</span><h2 class="recipe-title">Chai Tea Blend</h2></div>
+          <div class="meta"><p class="sugar">100% sugar</p></div>
+        </header>
+        <ol class="steps">
+          <li>100 ml chai tea + 3 chai tea blend powders</li>
+          <li>150 ml milk</li>
+          <li>Black ice, blend</li>
+        </ol>
+      </article>
+
+      <article class="recipe-card" data-category="blends" data-name="mocha blend coffee">
+        <header class="recipe-head">
+          <div><span class="category-label">Blends</span><h2 class="recipe-title">Mocha Blend</h2></div>
+          <div class="meta"><p class="sugar">100% sugar</p></div>
+        </header>
+        <ol class="steps">
+          <li>3 spoons mocha powder + 1 small spoon coffee powder</li>
+          <li>250 ml milk</li>
+          <li>Black ice, blend</li>
+        </ol>
+      </article>
+
+      <article class="recipe-card" data-category="blends" data-name="lemonade blend strawberry sb">
+        <header class="recipe-head">
+          <div><span class="category-label">Blends</span><h2 class="recipe-title">Lemonade Blend</h2></div>
+        </header>
+        <ol class="steps">
+          <li>3 lemonade powder + 1 pump SB syrup + 1 scoop ice</li>
+          <li>100 ml lemon juice + 100 ml water</li>
+          <li>Blend</li>
+        </ol>
+      </article>
+
+      <article class="recipe-card" data-category="crushies" data-name="ube mood">
+        <header class="recipe-head">
+          <div><span class="category-label">Specialties &amp; Crushies</span><h2 class="recipe-title">Ube Mood</h2></div>
+          <div class="meta"><p class="sugar">75% sugar</p></div>
+        </header>
+        <ol class="steps">
+          <li>Boba included</li>
+          <li>200 ml black tea + 100 ml milk</li>
+          <li>Add boba, ice and tea in the cup</li>
+          <li>Pour ube foam on top: 50 ml heavy cream + 25% sugar, frothed</li>
+        </ol>
+      </article>
+
+      <article class="recipe-card" data-category="crushies" data-name="creme brulee crème brûlée">
+        <header class="recipe-head">
+          <div><span class="category-label">Specialties &amp; Crushies</span><h2 class="recipe-title">Crème Brûlée</h2></div>
+          <div class="meta"><p class="sugar">75% sugar</p></div>
+        </header>
+        <ol class="steps">
+          <li>Milkshake cup, boba included</li>
+          <li>Prepare 200 ml black tea + 100 ml milk + 75% sugar</li>
+          <li>Decorate the cup with brown sugar around the cup, pour ice in the cup and pour the tea</li>
+          <li>Put crème brûlée on top, sprinkle white sugar, and torch</li>
+        </ol>
+      </article>
+
+      <article class="recipe-card" data-category="crushies" data-name="matcha love strawberry sb">
+        <header class="recipe-head">
+          <div><span class="category-label">Specialties &amp; Crushies</span><h2 class="recipe-title">Matcha Love</h2></div>
+        </header>
+        <ol class="steps">
+          <li>Same matcha milk tea base (for blend) — the only difference is the cup</li>
+          <li>1 scoop of SB purée in the cup, add topping if any</li>
+          <li>Decorate the cup with thinly sliced SB, 3–4 pieces</li>
+          <li>Use SB sauce (in the small fridge) to finish decorating</li>
+          <li>After decorating the cup, fill with ice and pour the tea in</li>
+        </ol>
+      </article>
+
+      <article class="recipe-card" data-category="crushies" data-name="strawberry kisses sb">
+        <header class="recipe-head">
+          <div><span class="category-label">Specialties &amp; Crushies</span><h2 class="recipe-title">Strawberry Kisses</h2></div>
+          <div class="meta"><p class="sugar">75% sugar</p></div>
+        </header>
+        <ol class="steps">
+          <li>Prepare the tea: 250 ml strawberry tea + 100 ml milk</li>
+        </ol>
+      </article>
+
+      <article class="recipe-card" data-category="crushies" data-name="mango yogurt">
+        <header class="recipe-head">
+          <div><span class="category-label">Specialties &amp; Crushies</span><h2 class="recipe-title">Mango Yogurt</h2></div>
+        </header>
+        <ol class="steps">
+          <li>In the blender: 2 spoons yogurt + ½ scoop frozen mango</li>
+          <li>Add 200 ml milk + 1 pump mango syrup</li>
+          <li>Brown ice, blend</li>
+        </ol>
+      </article>
+
+      <article class="recipe-card" data-category="crushies" data-name="sb yogurt strawberry">
+        <header class="recipe-head">
+          <div><span class="category-label">Specialties &amp; Crushies</span><h2 class="recipe-title">SB Yogurt</h2></div>
+          <div class="meta"><p class="sugar">100% sugar</p></div>
+        </header>
+        <ol class="steps">
+          <li>In the blender: 2 spoons yogurt + ½ scoop frozen SB</li>
+          <li>Add 200 ml milk + 1 pump SB syrup</li>
+          <li>Brown ice, blend</li>
+        </ol>
+      </article>
+
+      <article class="recipe-card" data-category="crushies" data-name="peach yogurt">
+        <header class="recipe-head">
+          <div><span class="category-label">Specialties &amp; Crushies</span><h2 class="recipe-title">Peach Yogurt</h2></div>
+          <div class="meta"><p class="sugar">100% sugar</p></div>
+        </header>
+        <ol class="steps">
+          <li>In the blender: 2 spoons yogurt + ½ scoop mango <em>[as written on the sheet — likely peach, sheet says mango]</em></li>
+          <li>Add 200 ml milk + 1 pump peach syrup</li>
+          <li>Brown ice, blend</li>
+        </ol>
+      </article>
+
+      <article class="recipe-card" data-category="crushies" data-name="chamango mango chamoy tajin">
+        <header class="recipe-head">
+          <div><span class="category-label">Specialties &amp; Crushies</span><h2 class="recipe-title">Chamango</h2></div>
+          <div class="meta"><p class="sugar">100% sugar</p></div>
+        </header>
+        <ol class="steps">
+          <li>In the blender: 1 cup mango + brown ice</li>
+          <li>Add 100 ml water + 150 ml mango nectar + chamango sugar + 1 pump mango syrup + Tajín powder</li>
+          <li>Decorate the cup with chamoy sauce, then pour</li>
+        </ol>
+      </article>
+
+      <article class="recipe-card" data-category="crushies" data-name="tropical crushed mango banana fruit punch">
+        <header class="recipe-head">
+          <div><span class="category-label">Specialties &amp; Crushies</span><h2 class="recipe-title">Tropical Crushed</h2></div>
+          <div class="meta"><p class="sugar">75% sugar</p></div>
+        </header>
+        <ol class="steps">
+          <li>In the blender: 1 cup mango + ⅓ banana</li>
+          <li>Add 1 pump mango syrup + 250 ml fruit punch</li>
+          <li>Brown ice, blend</li>
+        </ol>
+      </article>
+
+      <article class="recipe-card" data-category="crushies" data-name="berry crushed strawberry sb fruit punch">
+        <header class="recipe-head">
+          <div><span class="category-label">Specialties &amp; Crushies</span><h2 class="recipe-title">Berry Crushed</h2></div>
+          <div class="meta"><p class="sugar">75% sugar</p></div>
+        </header>
+        <ol class="steps">
+          <li>In the blender: 1 cup berry mix + 1 pump SB syrup</li>
+          <li>Add 250 ml fruit punch</li>
+          <li>Brown ice, blend</li>
+        </ol>
+      </article>
+
+      <article class="recipe-card" data-category="crushies" data-name="mango tango passion fruit">
+        <header class="recipe-head">
+          <div><span class="category-label">Specialties &amp; Crushies</span><h2 class="recipe-title">Mango Tango</h2></div>
+        </header>
+        <ol class="steps">
+          <li>1 cup frozen mango + regular sugar</li>
+          <li>Passion fruit seeds + 1 scoop</li>
+          <li>1 pump passion fruit syrup + ½ pump mango syrup</li>
+          <li>200 ml fruit punch + 50 ml mango nectar</li>
+          <li>Brown ice, blend</li>
+        </ol>
+      </article>
+
+      <article class="recipe-card" data-category="crushies" data-name="strawberry sigma sb fruit punch">
+        <header class="recipe-head">
+          <div><span class="category-label">Specialties &amp; Crushies</span><h2 class="recipe-title">Strawberry Sigma</h2></div>
+          <div class="meta"><p class="sugar">75% sugar</p></div>
+        </header>
+        <ol class="steps">
+          <li>1 cup frozen SB + 1 pump SB syrup</li>
+          <li>250 ml fruit punch</li>
+          <li>Brown ice, blend</li>
+        </ol>
+      </article>
+
+      <article class="recipe-card" data-category="crushies" data-name="life is peach mango fruit punch">
+        <header class="recipe-head">
+          <div><span class="category-label">Specialties &amp; Crushies</span><h2 class="recipe-title">Life Is Peach</h2></div>
+          <div class="meta"><p class="sugar">75% sugar</p></div>
+        </header>
+        <ol class="steps">
+          <li>1 cup frozen mango + 1 pump peach syrup</li>
+          <li>250 ml fruit punch</li>
+          <li>Brown ice, blend</li>
+        </ol>
+      </article>
+
+      <article class="recipe-card" data-category="crushies" data-name="you are my passion mango passion fruit">
+        <header class="recipe-head">
+          <div><span class="category-label">Specialties &amp; Crushies</span><h2 class="recipe-title">You Are My Passion</h2></div>
+        </header>
+        <ol class="steps">
+          <li>1 cup frozen mango + 2 pumps passion fruit</li>
+          <li>1 scoop passion fruit seeds</li>
+          <li>200 ml fruit punch</li>
+          <li>Brown ice, blend</li>
+        </ol>
+      </article>
+
+      <article class="recipe-card" data-category="crushies" data-name="banana strawberry crushed sb fruit punch">
+        <header class="recipe-head">
+          <div><span class="category-label">Specialties &amp; Crushies</span><h2 class="recipe-title">Banana Strawberry Crushed</h2></div>
+          <div class="meta"><p class="sugar">75% sugar</p></div>
+        </header>
+        <ol class="steps">
+          <li>1 cup frozen SB + 1 pump SB syrup + ⅓ banana</li>
+          <li>200 ml fruit punch</li>
+          <li>Brown ice, blend</li>
+        </ol>
+      </article>
+
+      <article class="recipe-card" data-category="coconut" data-name="coconut milk tea">
+        <header class="recipe-head">
+          <div><span class="category-label">Coconut</span><h2 class="recipe-title">Coconut Milk Tea</h2></div>
+          <div class="meta"><p class="sugar">100% sugar</p></div>
+        </header>
+        <ol class="steps">
+          <li>250 ml milk + 1½ spoons coconut powder, blend with the hand blender well</li>
+          <li>Add 100 ml black tea</li>
+        </ol>
+        <p class="tip"><strong>Handwritten add:</strong> 1 spoon coconut flakes.</p>
+      </article>
+
+      <article class="recipe-card" data-category="coconut" data-name="coconut smoothie">
+        <header class="recipe-head">
+          <div><span class="category-label">Coconut</span><h2 class="recipe-title">Coconut Smoothie</h2></div>
+          <div class="meta"><p class="sugar">100% sugar</p></div>
+        </header>
+        <ol class="steps">
+          <li>Black ice + 250 ml milk + 2 spoons coconut powder</li>
+          <li>Blend</li>
+        </ol>
+      </article>
+
+      <article class="recipe-card" data-category="coconut" data-name="mango coconut crush">
+        <header class="recipe-head">
+          <div><span class="category-label">Coconut</span><h2 class="recipe-title">Mango Coconut Crush</h2></div>
+          <div class="meta"><p class="sugar">75% sugar</p></div>
+        </header>
+        <ol class="steps">
+          <li>½ scoop mango + 250 ml milk <em>[handwritten correction on the sheet, over “fruit punch”]</em></li>
+          <li>1 pump mango syrup + 2 scoops coconut powder</li>
+          <li>Brown ice, blend</li>
+        </ol>
+      </article>
+
+      <article class="recipe-card" data-category="lattes" data-name="latte espresso">
+        <header class="recipe-head">
+          <div><span class="category-label">Lattes</span><h2 class="recipe-title">Latte</h2></div>
+          <div class="meta"><p class="sugar">50% sugar</p></div>
+        </header>
+        <ol class="steps">
+          <li>Small cup, fill with ice</li>
+          <li>Add 250 ml milk + 50% sugar</li>
+          <li>1 shot of espresso on top</li>
+        </ol>
+      </article>
+
+      <article class="recipe-card" data-category="lattes" data-name="romeo latte chocolate berry espresso">
+        <header class="recipe-head">
+          <div><span class="category-label">Lattes</span><h2 class="recipe-title">Romeo</h2></div>
+          <div class="meta"><p class="sugar">50% sugar</p></div>
+        </header>
+        <ol class="steps">
+          <li>Decorate the cup with chocolate sauce, put 1 scoop of berry purée, add ice</li>
+          <li>Add 250 ml milk + 50% sugar</li>
+          <li>Brew 1 shot espresso, add 1 pump chocolate sauce, stir well and slow-pour on top</li>
+        </ol>
+      </article>
+
+      <article class="recipe-card" data-category="lattes" data-name="juliet latte white chocolate berry espresso">
+        <header class="recipe-head">
+          <div><span class="category-label">Lattes</span><h2 class="recipe-title">Juliet</h2></div>
+          <div class="meta"><p class="sugar">50% sugar</p></div>
+        </header>
+        <ol class="steps">
+          <li>Decorate the cup with white chocolate sauce, put 1 scoop of berry purée, add ice</li>
+          <li>Add 250 ml milk + 50% sugar</li>
+          <li>Brew 1 shot espresso, add 1 pump white chocolate sauce, stir well and slow-pour on top</li>
+        </ol>
+      </article>
+
+      <article class="recipe-card" data-category="lattes" data-name="iceblended coffee espresso">
+        <header class="recipe-head">
+          <div><span class="category-label">Lattes</span><h2 class="recipe-title">Iceblended Coffee</h2></div>
+        </header>
+        <ol class="steps">
+          <li>1 shot espresso + 200 ml milk + 1 scoop of coffee blend powder + black ice</li>
+          <li>Blend</li>
+        </ol>
+        <p class="tip"><strong>Sheet note:</strong> The sheet also lists 200 ml milk, 100%.</p>
+      </article>
+
+      <article class="recipe-card" data-category="lattes" data-name="oreo latte foam espresso">
+        <header class="recipe-head">
+          <div><span class="category-label">Lattes · with foam</span><h2 class="recipe-title">Oreo Latte</h2></div>
+          <div class="meta"><p class="sugar">50% sugar</p></div>
+        </header>
+        <ol class="steps">
+          <li>Small cup with lid. Put 1 scoop smashed Oreo in the cup, chocolate around the cup</li>
+          <li>In a measuring cup pour 200 ml milk, add 50% sugar, stir</li>
+          <li>Fill the cup with ice, pour in the milk, 1 shot espresso on top</li>
+          <li>Top with cold vanilla foam, drizzle a few Oreo pieces on top</li>
+        </ol>
+      </article>
+
+      <article class="recipe-card" data-category="lattes" data-name="from dubai latte pistachio foam espresso">
+        <header class="recipe-head">
+          <div><span class="category-label">Lattes · with foam</span><h2 class="recipe-title">From Dubai Latte</h2></div>
+          <div class="meta"><p class="sugar">50% sugar</p></div>
+        </header>
+        <ol class="steps">
+          <li>Small cup with lid. Chocolate sauce around the cup, fill with ice</li>
+          <li>Pistachio foam: 50 ml heavy cream + 20 g pistachio crème + 25% sugar + 1 pump pistachio syrup — stir with a spoon first, then froth</li>
+          <li>Pour 200 ml milk in the cup + 50% sugar, stir</li>
+          <li>Add 1 shot espresso on top, add the pistachio foam on top</li>
+          <li>Drizzle pistachio powder &amp; chocolate syrup</li>
+        </ol>
+      </article>
+
+      <article class="recipe-card" data-category="lattes" data-name="brown sugar latte cloud foam espresso">
+        <header class="recipe-head">
+          <div><span class="category-label">Lattes · with foam</span><h2 class="recipe-title">Brown Sugar Latte</h2></div>
+          <div class="meta"><p class="sugar">50% sugar</p></div>
+        </header>
+        <ol class="steps">
+          <li>Small cup with lid. 3 scoops brown sugar in the cup, add 1 shot espresso, froth with the frother</li>
+          <li>Add ice, put brown sugar syrup around the cup</li>
+          <li>In a separate cup add 200 ml milk + 50% sugar, stir, pour the milk into the 16 oz cup slowly</li>
+          <li>Put vanilla foam on top, drizzle brown sugar</li>
+        </ol>
+      </article>
+
+      <article class="recipe-card" data-category="lattes" data-name="spanish latte condensed milk foam espresso">
+        <header class="recipe-head">
+          <div><span class="category-label">Lattes · with foam</span><h2 class="recipe-title">Spanish Latte</h2></div>
+          <div class="meta"><p class="sugar">50% sugar</p></div>
+        </header>
+        <ol class="steps">
+          <li>Small cup with lid. Put 25 g condensed milk in the cup, add 1 shot espresso, mix with the frother</li>
+          <li>Fill the cup with ice</li>
+          <li>In a separate cup add 200 ml milk + 50% sugar</li>
+          <li>Pour onto the 16 oz cup slowly, put vanilla foam on top</li>
+        </ol>
+      </article>
+
+      <article class="recipe-card" data-category="lattes" data-name="dulce de leche latte foam espresso cinnamon">
+        <header class="recipe-head">
+          <div><span class="category-label">Lattes · with foam</span><h2 class="recipe-title">Dulce de Leche Latte</h2></div>
+          <div class="meta"><p class="sugar">50% sugar</p></div>
+        </header>
+        <ol class="steps">
+          <li>Small cup with lid. 20 g condensed milk in the cup, squeeze 15 g dulce sauce, add 1 shot espresso, stir with spoon &amp; frother</li>
+          <li>Fill the cup with ice, put dulce sauce around the cup</li>
+          <li>In a separate cup add 200 ml milk + 50% sugar</li>
+          <li>Pour onto the 16 oz cup slowly, put vanilla foam on top, cinnamon powder on top</li>
+        </ol>
+      </article>
+
+      <article class="recipe-card" data-category="lattes" data-name="nutella love latte foam espresso cocoa">
+        <header class="recipe-head">
+          <div><span class="category-label">Lattes · with foam</span><h2 class="recipe-title">Nutella Love Latte</h2></div>
+          <div class="meta"><p class="sugar">50% sugar</p></div>
+        </header>
+        <ol class="steps">
+          <li>Small cup with lid. Squeeze 25 g Nutella into the cup, spread it around the cup wall with the tea stirring spoon</li>
+          <li>Put 1 espresso in the cup, stir with a spoon then froth well</li>
+          <li>Fill the cup with ice</li>
+          <li>Prepare the milk in a separate cup: 200 ml + 50% sugar, stir and pour</li>
+          <li>Add foam, sprinkle cocoa powder on top</li>
+        </ol>
+        <p class="tip"><strong>Tip:</strong> Go slow with the cocoa powder — too much comes out if you're not careful.</p>
+      </article>
+
+      <article class="recipe-card" data-category="lattes" data-name="matcha cloud latte foam">
+        <header class="recipe-head">
+          <div><span class="category-label">Lattes · with foam</span><h2 class="recipe-title">Matcha Cloud Latte</h2></div>
+          <div class="meta"><p class="sugar">50% sugar</p></div>
+        </header>
+        <ol class="steps">
+          <li>Small cup with lid. Foam: 50 ml heavy cream + splash of milk + 25% sugar + 2 spoons matcha powder — whip with the frother until the powder is all gone and foamy</li>
+          <li>Prepare 200 ml milk + 50% sugar</li>
+          <li>Fill the 16 oz cup with ice, pour the milk in, then slowly put the foam on top</li>
+        </ol>
+      </article>
+
+      <article class="recipe-card" data-category="lattes" data-name="ube latte foam espresso">
+        <header class="recipe-head">
+          <div><span class="category-label">Lattes</span><h2 class="recipe-title">Ube Latte</h2></div>
+          <div class="meta"><p class="sugar">50% sugar</p></div>
+        </header>
+        <ol class="steps">
+          <li>Small cup. Ube around the cup</li>
+          <li>200 ml milk + 50% sugar</li>
+          <li>Fill the cup with ice &amp; add the milk</li>
+          <li>Brew 1 shot espresso, pour on top</li>
+          <li>Ube foam on top: 50 ml heavy cream + 25% sugar + 1-second squeeze of ube paste</li>
+        </ol>
+        <p class="tip"><strong>Sheet note:</strong> From a handwritten note on the sheet — foam on top is implied by the note's heading.</p>
+      </article>
+
+      <article class="recipe-card" data-category="lattes" data-name="vanilla foam base recipe">
+        <header class="recipe-head">
+          <div><span class="category-label">Lattes · foam base</span><h2 class="recipe-title">Vanilla Foam — 1 serving</h2></div>
+        </header>
+        <ol class="steps">
+          <li>50 ml heavy cream + 25% sugar + very tiny splash of milk</li>
+          <li>Froth with the frother</li>
+        </ol>
+      </article>
+
+      <article class="recipe-card" data-category="lattes" data-name="ube foam base recipe">
+        <header class="recipe-head">
+          <div><span class="category-label">Lattes · foam base</span><h2 class="recipe-title">Ube Foam — 1 serving</h2></div>
+        </header>
+        <ol class="steps">
+          <li>50 ml heavy cream + 25% sugar + very tiny splash of milk + ube paste (quick 1-second squeeze)</li>
+          <li>Froth with the frother</li>
+        </ol>
+      </article>
+
+      <article class="recipe-card" data-category="milkshakes" data-name="frozen hot chocolate milkshake">
+        <header class="recipe-head">
+          <div><span class="category-label">Milkshakes</span><h2 class="recipe-title">Frozen Hot Chocolate</h2></div>
+        </header>
+        <ol class="steps">
+          <li>Milkshake base with chocolate ice cream + ½ spoon frozen chocolate powder</li>
+          <li>Top: whip cream, chocolate syrup drizzle</li>
+        </ol>
+      </article>
+
+      <article class="recipe-card" data-category="milkshakes" data-name="cookie cream milkshake oreo">
+        <header class="recipe-head">
+          <div><span class="category-label">Milkshakes</span><h2 class="recipe-title">Cookie Cream</h2></div>
+        </header>
+        <ol class="steps">
+          <li>Milkshake base with vanilla + ½ spoon cookie powder + 1 Oreo</li>
+          <li>Top: whip cream, chocolate syrup drizzle, crushed Oreo on top</li>
+        </ol>
+      </article>
+
+      <article class="recipe-card" data-category="milkshakes" data-name="im all yours milkshake strawberry sb">
+        <header class="recipe-head">
+          <div><span class="category-label">Milkshakes</span><h2 class="recipe-title">Im All Yours</h2></div>
+        </header>
+        <ol class="steps">
+          <li>Milkshake base with vanilla + half cup frozen SB + 1 pump SB syrup</li>
+          <li>Top: whip cream, strawberry sauce drizzle on top</li>
+        </ol>
+      </article>
+
+      <article class="recipe-card" data-category="milkshakes" data-name="mango milk shake">
+        <header class="recipe-head">
+          <div><span class="category-label">Milkshakes</span><h2 class="recipe-title">Mango Milk Shake</h2></div>
+        </header>
+        <ol class="steps">
+          <li>Milkshake base with vanilla + 1 pump mango syrup</li>
+          <li>Top: whip cream</li>
+        </ol>
+      </article>
+
+      <article class="recipe-card" data-category="milkshakes" data-name="my crush milkshake dragon fruit">
+        <header class="recipe-head">
+          <div><span class="category-label">Milkshakes</span><h2 class="recipe-title">My Crush</h2></div>
+        </header>
+        <ol class="steps">
+          <li>Milkshake base with vanilla + 1 pump dragon fruit syrup</li>
+          <li>Top: whip cream</li>
+        </ol>
+        <p class="tip"><strong>Sheet note:</strong> The sheet's extra topping for this one is crossed out and illegible.</p>
+      </article>
+
+      <article class="recipe-card" data-category="milkshakes" data-name="vanilla ice milkshake">
+        <header class="recipe-head">
+          <div><span class="category-label">Milkshakes</span><h2 class="recipe-title">Vanilla Ice</h2></div>
+        </header>
+        <ol class="steps">
+          <li>Milkshake base with vanilla + 2 spoons non-dairy creamer (may be skipped if not available)</li>
+          <li>Top: whip cream</li>
+        </ol>
+      </article>
+
+      <article class="recipe-card" data-category="milkshakes" data-name="banana shake milkshake">
+        <header class="recipe-head">
+          <div><span class="category-label">Milkshakes</span><h2 class="recipe-title">Banana Shake</h2></div>
+        </header>
+        <ol class="steps">
+          <li>Milkshake base with vanilla + half a banana</li>
+          <li>Top: whip cream</li>
+        </ol>
+      </article>
+
+      <article class="recipe-card" data-category="milkshakes" data-name="pumpkin spiced milkshake">
+        <header class="recipe-head">
+          <div><span class="category-label">Milkshakes</span><h2 class="recipe-title">Pumpkin Spiced Milkshake</h2></div>
+        </header>
+        <ol class="steps">
+          <li>Milkshake base with vanilla + a squeeze of pumpkin syrup + 1 spoon pumpkin powder</li>
+          <li>Decorate the cup with pumpkin syrup</li>
+          <li>Top: whip cream and a dust of pumpkin powder</li>
+        </ol>
+      </article>
+
+      <article class="recipe-card" data-category="milkshakes" data-name="my babe ube milkshake">
+        <header class="recipe-head">
+          <div><span class="category-label">Milkshakes</span><h2 class="recipe-title">My Babe Ube</h2></div>
+        </header>
+        <ol class="steps">
+          <li>Milkshake base with vanilla + about a 2-second squeeze of ube paste</li>
+          <li>Ube paste around the cup</li>
+          <li>Top: whip cream</li>
+        </ol>
+      </article>
+
+      <article class="recipe-card" data-category="milkshakes" data-name="strawberry short cake milkshake cheesecake sb">
+        <header class="recipe-head">
+          <div><span class="category-label">Milkshakes</span><h2 class="recipe-title">Strawberry Short Cake</h2></div>
+        </header>
+        <ol class="steps">
+          <li>Milkshake base with vanilla + half cup frozen SB + 1 pump SB syrup + a slice of cheesecake</li>
+          <li>Top: whip cream, a slice of cheesecake on top</li>
+        </ol>
+      </article>
+
+      <article class="recipe-card" data-category="milkshakes" data-name="monkey business milkshake chocolate banana graham">
+        <header class="recipe-head">
+          <div><span class="category-label">Milkshakes</span><h2 class="recipe-title">Monkey Business</h2></div>
+        </header>
+        <ol class="steps">
+          <li>Milkshake base with chocolate + ⅓ banana + half a square of graham</li>
+          <li>Top: whip cream and half a square of graham</li>
+        </ol>
+      </article>
+
+      <article class="recipe-card" data-category="milkshakes" data-name="yabba dabba doo milkshake fruity pebbles">
+        <header class="recipe-head">
+          <div><span class="category-label">Milkshakes</span><h2 class="recipe-title">Yabba Dabba Doo</h2></div>
+        </header>
+        <ol class="steps">
+          <li>Milkshake base with vanilla + 1 spoon Fruity Pebbles</li>
+          <li>Top: whip cream, 1 spoon Fruity Pebbles &amp; marshmallow cream drizzle</li>
+        </ol>
+      </article>
+
+      <article class="recipe-card" data-category="milkshakes" data-name="salted pistacchio milkshake pistachio">
+        <header class="recipe-head">
+          <div><span class="category-label">Milkshakes</span><h2 class="recipe-title">Salted Pistacchio</h2></div>
+        </header>
+        <ol class="steps">
+          <li>Milkshake base with vanilla + 1 pump pistachio syrup + 1 spoon pistachio cream (the same one used for the latte)</li>
+          <li>Top: whip, a dust of pistachio powder, caramel drizzle</li>
+        </ol>
+      </article>
+
+      <article class="recipe-card" data-category="milkshakes" data-name="chocolate brownie milkshake">
+        <header class="recipe-head">
+          <div><span class="category-label">Milkshakes</span><h2 class="recipe-title">Chocolate Brownie</h2></div>
+        </header>
+        <ol class="steps">
+          <li>Milkshake base with chocolate + 1 pc brownie</li>
+          <li>Top: whip, mini marshmallow + 1 pc brownie, chocolate drizzle</li>
+        </ol>
+      </article>
+
+      <article class="recipe-card" data-category="milkshakes" data-name="strawberry banana milkshake sb">
+        <header class="recipe-head">
+          <div><span class="category-label">Milkshakes</span><h2 class="recipe-title">Strawberry Banana</h2></div>
+        </header>
+        <ol class="steps">
+          <li>Milkshake base with vanilla + ⅓ banana + 1 pump SB syrup + half spoon frozen SB</li>
+          <li>Top: whip</li>
+        </ol>
+      </article>
+
+      <article class="recipe-card" data-category="milkshakes" data-name="kit kat milkshake chocolate">
+        <header class="recipe-head">
+          <div><span class="category-label">Milkshakes</span><h2 class="recipe-title">Kit Kat</h2></div>
+        </header>
+        <ol class="steps">
+          <li>Milkshake base with chocolate + 1 pc Kit Kat</li>
+          <li>Top: whip, 1 pc Kit Kat + chocolate drizzle</li>
+        </ol>
+      </article>
+
+      <article class="recipe-card" data-category="milkshakes" data-name="tiger boba milkshake brown sugar">
+        <header class="recipe-head">
+          <div><span class="category-label">Milkshakes · Taste of Korea sheet</span><h2 class="recipe-title">Tiger Boba Milkshake</h2></div>
+        </header>
+        <ol class="steps">
+          <li>Boba included, brown sugar around the cup</li>
+          <li>Vanilla base basic milkshake</li>
+          <li>Decorate the whip cream with brown sugar</li>
+        </ol>
+      </article>
+
+      <article class="recipe-card" data-category="milkshakes" data-name="ube cloud milkshake">
+        <header class="recipe-head">
+          <div><span class="category-label">Milkshakes · Taste of Korea sheet</span><h2 class="recipe-title">Ube Cloud Milkshake</h2></div>
+        </header>
+        <ol class="steps">
+          <li>Basically My Babe Ube</li>
+          <li>Use ube whip cream on top</li>
+        </ol>
+      </article>
+
+      <article class="recipe-card" data-category="milkshakes" data-name="dubai chocolate shake pistachio kataifi">
+        <header class="recipe-head">
+          <div><span class="category-label">Milkshakes · Taste of Korea sheet</span><h2 class="recipe-title">Dubai Chocolate Shake</h2></div>
+          <div class="meta"><p class="sugar">Regular sugar</p></div>
+        </header>
+        <ol class="steps">
+          <li>1 cup chocolate base + 1 spoon pistachio paste + ½ pump pistachio + black ice + regular sugar</li>
+          <li>Decorate the cup: chocolate sauce around the outside of the cup, roll in pistachio powder for the visual</li>
+          <li>Add the milkshake in the cup, whip cream on top</li>
+          <li>Sprinkle kataifi on top with pistachio powder, chocolate syrup</li>
+        </ol>
+      </article>
+
+      <article class="recipe-card" data-category="milkshakes" data-name="strawberry cloud shake sb im all yours">
+        <header class="recipe-head">
+          <div><span class="category-label">Milkshakes · Taste of Korea sheet</span><h2 class="recipe-title">Strawberry Cloud Shake</h2></div>
+        </header>
+        <ol class="steps">
+          <li>Basically Im All Yours, with a fresh strawberry on top</li>
+          <li>SB syrup around the cup</li>
+        </ol>
+        <p class="tip"><strong>Handwritten:</strong> Smash 1 SB in the cup &amp; smear around.</p>
+      </article>
+
+      <article class="recipe-card" data-category="milkshakes" data-name="taro coconut milkshake ube whip">
+        <header class="recipe-head">
+          <div><span class="category-label">Milkshakes · Taste of Korea sheet</span><h2 class="recipe-title">Taro Coconut</h2></div>
+        </header>
+        <ol class="steps">
+          <li>1 cup vanilla base + 1 scoop coconut powder + ½ scoop taro powder, black ice</li>
+          <li>Top with ube whip</li>
+          <li>Sprinkle coconut flakes on top and torch it quick</li>
+        </ol>
+        <p class="tip"><strong>Careful:</strong> The torch must be quick or the whip melts.</p>
+      </article>
+
+      <article class="recipe-card" data-category="milkshakes" data-name="strawberry matcha milkshake sb">
+        <header class="recipe-head">
+          <div><span class="category-label">Milkshakes · Taste of Korea sheet</span><h2 class="recipe-title">Strawberry Matcha Shake</h2></div>
+        </header>
+        <ol class="steps">
+          <li>Smash one strawberry in the cup, ½ pump SB syrup, stir around the cup with a spoon</li>
+          <li>Prepare 1 vanilla + black ice + 2 scoops matcha powder, pour in (it will create the visual effect) inside the cup</li>
+          <li>Top with whip cream SB drizzle, fresh strawberry slice</li>
+        </ol>
+      </article>
+
+      <article class="recipe-card matcha" data-category="matcha" data-name="sb cloud matcha strawberry">
+        <header class="recipe-head">
+          <div><span class="category-label">Matcha Specialty</span><h2 class="recipe-title">SB Cloud Matcha</h2></div>
+          <div class="meta"><p class="price">$8.50</p><p class="sugar">Regular sugar</p></div>
+        </header>
+        <ol class="steps">
+          <li>Milkshake cup. Smash 1 SB in the cup, add ½ pump SB syrup, stir around with a spoon &amp; add ice</li>
+          <li>In a measuring cup add 250 ml milk + regular sugar, pour into the prepared cup</li>
+          <li>50 ml hot water + 2 spoons matcha, froth well and pour on top</li>
+          <li>Top with ube whip cream</li>
+        </ol>
+        <p class="tip"><strong>Handwritten margin:</strong> 25 + 25 milk.</p>
+      </article>
+
+      <article class="recipe-card matcha" data-category="matcha" data-name="ube cloud matcha">
+        <header class="recipe-head">
+          <div><span class="category-label">Matcha Specialty</span><h2 class="recipe-title">Ube Cloud Matcha</h2></div>
+          <div class="meta"><p class="price">$8.50</p><p class="sugar">Regular sugar</p></div>
+        </header>
+        <ol class="steps">
+          <li>Milkshake cup. Decorate the bottom of the cup with ube paste, smear around the bottom a little bit with a spoon, then add ice</li>
+          <li>In a measuring cup: 250 ml milk + regular sugar, pour into the prepared cup</li>
+          <li>Add 50 ml hot water + 2 scoops matcha on top</li>
+          <li>Top with ube whip cream</li>
+        </ol>
+        <p class="tip"><strong>Handwritten:</strong> 25 + 25 milk.</p>
+      </article>
+
+      <article class="recipe-card matcha" data-category="matcha" data-name="tiger matcha cloud boba brown sugar">
+        <header class="recipe-head">
+          <div><span class="category-label">Matcha Specialty</span><h2 class="recipe-title">Tiger Matcha Cloud</h2></div>
+          <div class="meta"><p class="price">$8.00</p><p class="sugar">Regular sugar</p></div>
+        </header>
+        <ol class="steps">
+          <li>Milkshake cup. Boba included, decorate the cup with brown sugar</li>
+          <li>Add ice + measuring cup of 250 ml milk + regular sugar, pour in the cup</li>
+          <li>Add 50 ml hot water + 2 scoops matcha</li>
+        </ol>
+        <p class="tip"><strong>Handwritten:</strong> 25 + 25 milk.</p>
+      </article>
+
+      <article class="recipe-card matcha" data-category="matcha" data-name="seoul cream matcha">
+        <header class="recipe-head">
+          <div><span class="category-label">Matcha Specialty</span><h2 class="recipe-title">Seoul Cream Matcha</h2></div>
+          <div class="meta"><p class="price">$8.00</p><p class="sugar">75% sugar</p></div>
+        </header>
+        <ol class="steps">
+          <li>Milkshake cup. 50 ml hot water + 2 scoops matcha + a squeeze of condensed milk, froth well</li>
+          <li>Add 200 ml milk and 75% sugar, mix well</li>
+          <li>Pour in the cup topped with ice</li>
+          <li>Add cold foam on top (50 ml heavy cream + 25% sugar)</li>
+        </ol>
+      </article>
+
+      <article class="recipe-card matcha" data-category="matcha" data-name="mango matcha coconut">
+        <header class="recipe-head">
+          <div><span class="category-label">Matcha Specialty</span><h2 class="recipe-title">Mango Matcha</h2></div>
+          <div class="meta"><p class="price">$7.50</p><p class="sugar">75% sugar</p></div>
+        </header>
+        <ol class="steps">
+          <li>Milkshake cup. Pour 30 ml mango purée in the cup, smear it around the cup, then add ice</li>
+          <li>Coconut milk: 200 ml milk + 1½ scoops coconut powder, hand blend well, add 75% sugar, pour into the prepared cup</li>
+          <li>Make the matcha mix (50 ml hot water + 2 scoops), pour on top — layers, slow</li>
+        </ol>
+        <p class="tip"><strong>Sheet notes:</strong> Handwritten 25 + 25 milk; coconut milk amount corrected on the sheet to 150–200 ml. Mango purée recipe is its own card.</p>
+      </article>
+
+      <article class="recipe-card matcha" data-category="matcha" data-name="mango puree prep">
+        <header class="recipe-head">
+          <div><span class="category-label">Matcha Specialty · prep</span><h2 class="recipe-title">Mango Purée (prep)</h2></div>
+        </header>
+        <ol class="steps">
+          <li>1 scoop mango + 1 pump syrup</li>
+          <li>200 ml mango nectar + 50 ml water</li>
+          <li>Mix</li>
+        </ol>
+        <p class="tip"><strong>Sheet note:</strong> Handwritten on the Matcha Specialty sheet.</p>
+      </article>
+
+      <article class="recipe-card matcha" data-category="matcha" data-name="strawberry shortcake matcha sb cheese foam">
+        <header class="recipe-head">
+          <div><span class="category-label">Matcha Specialty</span><h2 class="recipe-title">Strawberry Shortcake Matcha</h2></div>
+          <div class="meta"><p class="sugar">50% sugar</p></div>
+        </header>
+        <ol class="steps">
+          <li>Small milkshake cup (16 oz cup), decorate the cup with SB syrup around the cup</li>
+          <li>Fill with ice all the way to the top</li>
+          <li>Pour 200 ml (a little over) milk in, add 50% sugar, stir a little bit</li>
+          <li>50 ml hot water + 1½ scoops matcha, blend it, pour on top</li>
+          <li>Strawberry cheese foam on top</li>
+        </ol>
+        <p class="tip"><strong>Sheet note:</strong> Not required to serve with a lid.</p>
+      </article>
+
+      <article class="recipe-card korea" data-category="korea" data-name="heukimja latte black sesame">
+        <header class="recipe-head">
+          <div><span class="category-label">Taste of Korea</span><h2 class="recipe-title">Heukimja Latte</h2></div>
+          <div class="meta"><p class="price">$8.00</p><p class="sugar">Regular sugar</p></div>
+        </header>
+        <ol class="steps">
+          <li>Milkshake cup. Measure 150 ml hot water + 2 scoops sesame powder, hand blend well</li>
+          <li>Add 150 ml milk + regular sugar</li>
+          <li>Pour into a cup filled with ice</li>
+        </ol>
+      </article>
+
+      <article class="recipe-card korea" data-category="korea" data-name="bori latte barley tea">
+        <header class="recipe-head">
+          <div><span class="category-label">Taste of Korea</span><h2 class="recipe-title">Bori Latte</h2></div>
+          <div class="meta"><p class="price">$7.00</p><p class="sugar">Regular sugar</p></div>
+        </header>
+        <ol class="steps">
+          <li>Milkshake cup. 250 ml Bori tea + 50 ml evaporated milk + regular sugar</li>
+          <li>Pour into a cup filled with ice</li>
+        </ol>
+      </article>
+
+      <article class="recipe-card korea" data-category="korea" data-name="misugaru latte grain powder">
+        <header class="recipe-head">
+          <div><span class="category-label">Taste of Korea</span><h2 class="recipe-title">Misugaru</h2></div>
+          <div class="meta"><p class="price">$7.50</p><p class="sugar">Regular sugar</p></div>
+        </header>
+        <ol class="steps">
+          <li>Milkshake cup. 150 ml hot water + 2 scoops powder, hand blend well</li>
+          <li>Add 150 ml milk + regular sugar</li>
+          <li>Mix very well, then pour into a cup filled with ice</li>
+        </ol>
+      </article>
+
+      <article class="recipe-card korea" data-category="korea" data-name="dalgona latte coffee ballerina">
+        <header class="recipe-head">
+          <div><span class="category-label">Taste of Korea</span><h2 class="recipe-title">Dalgona Latte</h2></div>
+          <div class="meta"><p class="price">$7.00</p></div>
+        </header>
+        <ol class="steps">
+          <li>Milkshake cup. Same build as the “my ballerina dalgona”</li>
+          <li>Froth it long enough for it to become thick and foamy, using the black frother</li>
+          <li>Decorate the top with broken dalgona cookies</li>
+        </ol>
+      </article>
+
+      <article class="recipe-card korea" data-category="korea" data-name="korean coffee">
+        <header class="recipe-head">
+          <div><span class="category-label">Taste of Korea</span><h2 class="recipe-title">Korean Coffee</h2></div>
+          <div class="meta"><p class="price">Current menu price</p><p class="sugar">50% sugar</p></div>
+        </header>
+        <ol class="steps">
+          <li>150 ml hot water + 3 packs Korean coffee</li>
+          <li>Add 100 ml milk <em>[handwritten correction on the sheet, over 150 ml]</em> + 50% sugar</li>
+          <li>Pour into a small milkshake cup filled with ice</li>
+        </ol>
+      </article>
+
+      <article class="recipe-card korea" data-category="korea" data-name="yuja ade yuzu kumquat">
+        <header class="recipe-head">
+          <div><span class="category-label">Taste of Korea</span><h2 class="recipe-title">Yuja-Ade</h2></div>
+          <div class="meta"><p class="price">$7.00</p><p class="sugar">75% sugar</p></div>
+        </header>
+        <ol class="steps">
+          <li>Milkshake cup. 3 scoops yuja in the cup + 1 pump kumquat syrup, mix around in the cup</li>
+          <li>Fill with ice</li>
+          <li>Fill with sparkling water, add 75% sugar, stir</li>
+        </ol>
+        <p class="tip"><strong>Sheet note:</strong> Handwritten on the Matcha Specialty sheet.</p>
+      </article>
+    </section>
+
+    <section class="empty" hidden aria-live="polite">
+      <h2>No recipe found</h2>
+      <p>Try another name or switch to All.</p>
+    </section>
+
+    <p class="footer-note">Recipes transcribed from the shop's own recipe sheets (Nov 1, 2026). SB = strawberry. “Black ice” / “brown ice” are kept as written on the sheets — the sheets don't define the difference.</p>
+  </main>
+
+  <script>
+    (function () {
+      var search = document.getElementById('recipe-search');
+      var clearButton = document.querySelector('.clear-button');
+      var chips = Array.prototype.slice.call(document.querySelectorAll('.chip'));
+      var cards = Array.prototype.slice.call(document.querySelectorAll('.recipe-card'));
+      var resultCount = document.getElementById('result-count');
+      var empty = document.querySelector('.empty');
+      var activeCategory = 'all';
+
+      function normalize(value) {
+        return value.toLocaleLowerCase().trim();
+      }
+
+      var cardText = cards.map(function (card) {
+        return normalize(card.dataset.name + ' ' + card.textContent);
+      });
+
+      function update() {
+        var query = normalize(search.value);
+        var visible = 0;
+
+        cards.forEach(function (card, i) {
+          var categoryMatch = activeCategory === 'all' || card.dataset.category === activeCategory;
+          var searchMatch = !query || cardText[i].indexOf(query) !== -1;
+          var show = categoryMatch && searchMatch;
+          card.hidden = !show;
+          if (show) visible += 1;
+        });
+
+        resultCount.textContent = visible + (visible === 1 ? ' recipe' : ' recipes');
+        clearButton.hidden = !search.value;
+        empty.hidden = visible !== 0;
+      }
+
+      search.addEventListener('input', update);
+
+      clearButton.addEventListener('click', function () {
+        search.value = '';
+        search.focus();
+        update();
+      });
+
+      chips.forEach(function (chip) {
+        chip.addEventListener('click', function () {
+          activeCategory = chip.dataset.category;
+          chips.forEach(function (item) {
+            item.setAttribute('aria-pressed', String(item === chip));
+          });
+          update();
+        });
+      });
+
+      update();
+    }());
+  </script>
+</body>
+</html>
